@@ -5,7 +5,8 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 
 interface TokenPayload {
   userId: string;
-  email?: string;
+  email: string;
+  username: string;
 }
 
 // Get token from cookie in server components

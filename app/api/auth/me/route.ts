@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       user: {
         id: decoded.userId,
-        email: decoded.email,
-        username: decoded.username
+        email: decoded.email || '',
+        username: decoded.username || ''
       }
     });
   } catch (error) {

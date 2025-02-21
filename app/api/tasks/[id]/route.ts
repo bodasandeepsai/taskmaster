@@ -1,12 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
+interface RouteParams {
+  params: {
+    id: string;
+  };
+}
+
 export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     await connectDB();
@@ -25,7 +31,7 @@ export async function PATCH(
     }
 
     // Get request body
-    const { status } = await req.json();
+    const { status } = await request.json();
 
     // Validate status
     if (!["pending", "in-progress", "completed"].includes(status)) {

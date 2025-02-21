@@ -161,35 +161,27 @@ export default function Dashboard() {
   };
 
   // Handle task update
-  const handleUpdateStatus = async (taskId: string, status: string) => {
+  const handleUpdateStatus = async (taskId: string, newStatus: string) => {
     try {
-      const res = await fetch("/api/updateTask", {
-        method: "POST",
+      const response = await fetch('/api/updateTask', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ taskId, status }),
-        credentials: "include",
+        body: JSON.stringify({ taskId, status: newStatus }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to update task");
-      }
+      if (!response.ok) throw new Error('Failed to update task');
 
-      const updatedTask = await res.json();
-      
-      // Update local state
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task._id === taskId ? updatedTask : task
-        )
-      );
+      const updatedTask = await response.json();
+      setTasks(tasks.map(task => 
+        task._id === taskId ? updatedTask : task
+      ));
 
       // Emit socket event
-      socket.emit("updateTask", updatedTask);
-
+      socket.emit('updateTask', updatedTask);
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.error('Error updating task:', error);
     }
   };
 
@@ -205,23 +197,16 @@ export default function Dashboard() {
 
   const handleDeleteTask = async (taskId: string) => {
     try {
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "DELETE",
-        credentials: "include",
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'DELETE',
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to delete task");
-      }
+      if (!response.ok) throw new Error('Failed to delete task');
 
-      // Update local state
-      setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
-      
-      // Emit socket event for real-time updates
-      socket.emit("deleteTask", taskId);
-      
+      setTasks(tasks.filter(task => task._id !== taskId));
+      socket.emit('deleteTask', taskId);
     } catch (error) {
-      console.error("Error deleting task:", error);
+      console.error('Error deleting task:', error);
     }
   };
 

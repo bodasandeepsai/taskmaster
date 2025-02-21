@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { getAuthUser } from "@/lib/auth";
+import { getTokenFromServer, verifyToken } from "@/lib/auth";
 import Task from "@/models/Task";
 import { connectDB } from "@/lib/db";
 
@@ -25,33 +25,29 @@ Format your response as:
 Task 1: [Task Name] (~X hours)
 • Description: Brief overview
 • Key Steps: Main implementation points
-• Priority: High/Medium/Low
-
-Task 2: [Task Name] (~X hours)
-• Description: Brief overview
-• Key Steps: Main implementation points
-• Priority: High/Medium/Low
-
-Task 3: [Task Name] (~X hours)
-• Description: Brief overview
-• Key Steps: Main implementation points
 • Priority: High/Medium/Low`;
 
 export async function POST(req: Request) {
   try {
     await connectDB();
     const { message } = await req.json();
-    const user = getAuthUser();
+    
+    // Get and verify token
+    const token = await getTokenFromServer();
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!user) {
+    const verified = verifyToken(token);
+    if (!verified) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get user's current tasks for context
     const currentTasks = await Task.find({
       $or: [
-        { assignee: user.userId },
-        { createdBy: user.userId }
+        { assignee: verified.userId },
+        { createdBy: verified.userId }
       ]
     }).select('title status priority').limit(5);
 

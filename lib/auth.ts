@@ -6,7 +6,6 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 export interface TokenUser {
   userId: string;
   email: string;
-  username: string;
 }
 
 // Get token from cookie in server components
@@ -89,8 +88,8 @@ export async function validateToken(token: string | undefined): Promise<TokenUse
   }
 }
 
-export const generateToken = (user: TokenUser): string => {
-  return jwt.sign(user, JWT_SECRET, { expiresIn: "24h" });
+export const generateToken = ({ userId, email }: TokenUser): string => {
+  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: "24h" });
 };
 
   

@@ -21,8 +21,7 @@ export async function POST(req: Request) {
 
     const tokenData: TokenUser = {
       userId: user._id.toString(),
-      email: user.email,
-      username: user.username
+      email: user.email
     };
 
     const token = generateToken(tokenData);
@@ -32,8 +31,7 @@ export async function POST(req: Request) {
         message: "Login successful",
         user: {
           id: user._id,
-          email: user.email,
-          username: user.username
+          email: user.email
         }
       },
       { status: 200 }

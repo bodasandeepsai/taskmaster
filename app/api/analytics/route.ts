@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
-import { getAuthUser } from "@/lib/auth";
+import { getTokenFromServer, verifyToken } from "@/lib/auth";
 
 export async function GET() {
   try {
     await connectDB();
-    const user = getAuthUser();
+    
+    // Get and verify token
+    const token = await getTokenFromServer();
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!user) {
+    const verified = verifyToken(token);
+    if (!verified) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -16,8 +22,8 @@ export async function GET() {
       {
         $match: {
           $or: [
-            { assignee: user.userId },
-            { createdBy: user.userId }
+            { assignee: verified.userId },
+            { createdBy: verified.userId }
           ]
         }
       },
@@ -33,8 +39,8 @@ export async function GET() {
       {
         $match: {
           $or: [
-            { assignee: user.userId },
-            { createdBy: user.userId }
+            { assignee: verified.userId },
+            { createdBy: verified.userId }
           ]
         }
       },

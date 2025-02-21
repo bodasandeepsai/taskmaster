@@ -39,6 +39,11 @@ io.on("connection", (socket) => {
     io.emit("commentAdded", data);
   });
 
+  socket.on("deleteTask", (taskId) => {
+    console.log("Task deleted:", taskId);
+    io.emit("taskDeleted", taskId);
+  });
+
   socket.on("disconnect", () => {
     // Remove user from online users
     for (const [userId, socketId] of onlineUsers.entries()) {

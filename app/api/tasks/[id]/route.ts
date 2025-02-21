@@ -55,4 +55,35 @@ export async function PATCH(
     console.error("Error updating task:", error);
     return NextResponse.json({ error: "Error updating task" }, { status: 500 });
   }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: Props
+) {
+  try {
+    await connectDB();
+
+    const token = getTokenFromServer();
+    
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    }
+
+    const deletedTask = await Task.findByIdAndDelete(params.id);
+
+    if (!deletedTask) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return NextResponse.json({ error: "Error deleting task" }, { status: 500 });
+  }
 } 

@@ -95,10 +95,15 @@ export default function Dashboard() {
         );
       });
 
+      socket.on("taskDeleted", (taskId: string) => {
+        setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
+      });
+
       return () => {
         socket.off("connect");
         socket.off("taskCreated");
         socket.off("taskUpdated");
+        socket.off("taskDeleted");
         socket.disconnect();
       };
     }
@@ -204,6 +209,28 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to delete task");
+      }
+
+      // Update local state
+      setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
+      
+      // Emit socket event for real-time updates
+      socket.emit("deleteTask", taskId);
+      
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -265,6 +292,7 @@ export default function Dashboard() {
                 key={task._id}
                 task={task}
                 onUpdateStatus={handleUpdateTask}
+                onDeleteTask={handleDeleteTask}
               />
             ))}
           </div>

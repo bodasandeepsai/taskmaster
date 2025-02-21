@@ -6,11 +6,6 @@
       "use": "@vercel/next"
     }
   ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "NEXT_PUBLIC_SOCKET_URL": "@socket_url"
-  },
   "routes": [
     {
       "src": "/api/(.*)",

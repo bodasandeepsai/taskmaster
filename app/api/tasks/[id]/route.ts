@@ -4,9 +4,15 @@ import Task from "@/models/Task";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
+type Props = {
+  params: {
+    id: string;
+  };
+};
+
 export async function PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
+  req: NextRequest,
+  { params }: Props
 ) {
   try {
     await connectDB();
@@ -25,7 +31,7 @@ export async function PATCH(
     }
 
     // Get request body
-    const { status } = await request.json();
+    const { status } = await req.json();
 
     // Validate status
     if (!["pending", "in-progress", "completed"].includes(status)) {
@@ -34,7 +40,7 @@ export async function PATCH(
 
     // Update task
     const updatedTask = await Task.findByIdAndUpdate(
-      context.params.id,
+      params.id,
       { status },
       { 
         new: true,

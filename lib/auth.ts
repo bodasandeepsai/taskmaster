@@ -3,12 +3,6 @@ import { cookies } from 'next/headers';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
-export interface TokenPayload {
-  userId: string;
-  email: string;
-  username: string;
-}
-
 export interface TokenUser {
   userId: string;
   email: string;
@@ -33,9 +27,9 @@ export function getTokenFromClient() {
 }
 
 // Verify JWT token
-export function verifyToken(token: string): TokenPayload | null {
+export function verifyToken(token: string): TokenUser | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    return jwt.verify(token, JWT_SECRET) as TokenUser;
   } catch (error) {
     console.error('Token verification failed:', error);
     return null;
@@ -72,7 +66,7 @@ export function generateTokens(userId: string) {
 // Refresh access token using refresh token
 export function refreshAccessToken(refreshToken: string) {
   try {
-    const decoded = jwt.verify(refreshToken, JWT_SECRET) as TokenPayload;
+    const decoded = jwt.verify(refreshToken, JWT_SECRET) as TokenUser;
     return jwt.sign({ userId: decoded.userId }, JWT_SECRET, { expiresIn: '1h' });
   } catch (error) {
     console.error('Token refresh failed:', error);
@@ -81,7 +75,7 @@ export function refreshAccessToken(refreshToken: string) {
 }
 
 // Validate token middleware
-export async function validateToken(token: string | undefined): Promise<TokenPayload | null> {
+export async function validateToken(token: string | undefined): Promise<TokenUser | null> {
   if (!token) return null;
   
   try {
@@ -95,16 +89,8 @@ export async function validateToken(token: string | undefined): Promise<TokenPay
   }
 }
 
-export const generateToken = (user: TokenUser) => {
-  return jwt.sign(
-    { 
-      userId: user.userId, 
-      email: user.email, 
-      username: user.username 
-    }, 
-    JWT_SECRET, 
-    { expiresIn: "24h" }
-  );
+export const generateToken = (user: TokenUser): string => {
+  return jwt.sign(user, JWT_SECRET, { expiresIn: "24h" });
 };
 
   

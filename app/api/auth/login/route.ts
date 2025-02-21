@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import { connectDB } from "@/lib/db";
-import { generateToken } from "@/lib/auth";
+import { generateToken, TokenUser } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
@@ -19,13 +19,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const token = generateToken({
+    const tokenData: TokenUser = {
       userId: user._id.toString(),
       email: user.email,
-      username: user.username || ''  // Add fallback for username
-    });
+      username: user.username
+    };
 
-    // Create the response
+    const token = generateToken(tokenData);
+
     const response = NextResponse.json(
       { 
         message: "Login successful",
@@ -38,7 +39,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
 
-    // Set cookie with proper configuration
     response.cookies.set({
       name: 'token',
       value: token,
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 24 * 60 * 60 // 24 hours
+      maxAge: 24 * 60 * 60
     });
 
     return response;

@@ -16,7 +16,7 @@ export async function PATCH(
   try {
     await connectDB();
 
-    // Verify authentication using the new function
+    // Get and verify token
     const token = getTokenFromServer();
     
     if (!token) {

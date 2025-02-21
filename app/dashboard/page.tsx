@@ -161,43 +161,37 @@ export default function Dashboard() {
   };
 
   // Handle task update
-  async function handleUpdateTask(taskId: string, status: string) {
+  const handleUpdateStatus = async (taskId: string, status: string) => {
     try {
-      console.log(`Updating task ${taskId} to status: ${status}`);
-      
-      const res = await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
+      const res = await fetch("/api/updateTask", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ taskId, status }),
         credentials: "include",
-        body: JSON.stringify({ status }),
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to update task");
+        throw new Error("Failed to update task");
       }
 
       const updatedTask = await res.json();
-      console.log("Task updated successfully:", updatedTask);
       
       // Update local state
       setTasks(prevTasks =>
         prevTasks.map(task =>
-          task._id === updatedTask._id ? updatedTask : task
+          task._id === taskId ? updatedTask : task
         )
       );
-      
+
       // Emit socket event
-      if (socketConnected) {
-        socket.emit("updateTask", updatedTask);
-      }
-    } catch (error: any) {
+      socket.emit("updateTask", updatedTask);
+
+    } catch (error) {
       console.error("Error updating task:", error);
-      alert(error.message || "Failed to update task");
     }
-  }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -291,7 +285,7 @@ export default function Dashboard() {
               <TaskCard
                 key={task._id}
                 task={task}
-                onUpdateStatus={handleUpdateTask}
+                onUpdateStatus={handleUpdateStatus}
                 onDeleteTask={handleDeleteTask}
               />
             ))}

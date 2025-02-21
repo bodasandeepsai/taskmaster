@@ -2,7 +2,7 @@ import { Task } from "@/types/task";
 
 interface TaskCardProps {
   task: Task;
-  onUpdateStatus: (taskId: string, status: string) => void;
+  onUpdateStatus: (taskId: string, newStatus: string) => void;
 }
 
 export default function TaskCard({ task, onUpdateStatus }: TaskCardProps) {

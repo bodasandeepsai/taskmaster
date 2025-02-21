@@ -1,16 +1,26 @@
 import { Server } from "socket.io";
 import http from "http";
-import Task from "@/models/Task";
-import { connectDB } from "@/lib/db";
+import mongoose from "mongoose";
+import { connectDB } from "../lib/db";
 import { verifyToken } from "@/lib/auth";
 
 const server = http.createServer();
+
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.NODE_ENV === 'production' 
+      ? process.env.NEXT_PUBLIC_APP_URL 
+      : "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true
   }
+});
+
+// Connect to MongoDB when server starts
+connectDB().then(() => {
+  console.log("MongoDB connected for WebSocket server");
+}).catch(err => {
+  console.error("MongoDB connection error:", err);
 });
 
 io.use((socket, next) => {
@@ -29,25 +39,28 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("User connected");
+  console.log("Client connected:", socket.id);
 
-  socket.on("createTask", async (newTask) => {
-    await connectDB();
-    const task = await Task.create(newTask);
-    io.emit("taskCreated", task); // Broadcast to all clients
+  socket.on("createTask", async (task) => {
+    io.emit("taskCreated", task);
   });
 
-  socket.on("updateTask", async (updatedTask) => {
-    await connectDB();
-    const task = await Task.findByIdAndUpdate(updatedTask._id, updatedTask, { new: true });
-    io.emit("taskUpdated", task); // Broadcast to all clients
+  socket.on("updateTask", async (task) => {
+    io.emit("taskUpdated", task);
+  });
+
+  socket.on("deleteTask", async (taskId) => {
+    io.emit("taskDeleted", taskId);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("Client disconnected:", socket.id);
   });
 });
 
-server.listen(4000, () => {
-  console.log("WebSocket server listening on port 4000");
+const PORT = process.env.SOCKET_PORT || 4000;
+server.listen(PORT, () => {
+  console.log(`WebSocket server running on port ${PORT}`);
 });
+
+export default io;

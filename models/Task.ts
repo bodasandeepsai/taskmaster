@@ -4,17 +4,17 @@ import { IUser } from "./User";
 export interface ITask extends mongoose.Document {
   title: string;
   description: string;
-  assignee: mongoose.Types.ObjectId;
-  createdBy: mongoose.Types.ObjectId;
+  assignee: IUser['_id'];
+  createdBy: IUser['_id'];
   status: "pending" | "in-progress" | "completed" | "blocked";
   priority: "low" | "medium" | "high" | "urgent";
-  dueDate: Date;
+  dueDate?: Date;
   createdAt: Date;
   updatedAt: Date;
   tags: string[];
   comments: {
     text: string;
-    user: mongoose.Types.ObjectId;
+    user: IUser['_id'];
     createdAt: Date;
   }[];
   attachments: {
@@ -49,7 +49,11 @@ const taskSchema = new mongoose.Schema({
     url: String,
     name: String
   }]
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
 
 // Prevent model recompilation error in development
 const Task = mongoose.models.Task || mongoose.model<ITask>('Task', taskSchema);

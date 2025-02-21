@@ -7,15 +7,15 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     
-    const token = getTokenFromServer();
+    const token = await getTokenFromServer();
     
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+    const verified = verifyToken(token);
+    if (!verified) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { taskId, status } = await request.json();

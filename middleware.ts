@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from 'next/headers';
 
-export function middleware(req: NextRequest) {
+export function middleware(request: NextRequest) {
     // Log all cookies to verify if the token is being read
-    console.log("Cookies in Middleware:", req.cookies);
+    console.log("Cookies in Middleware:", request.cookies);
 
-    const token = req.cookies.get("token");
+    const token = request.cookies.get("token");
+    const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
+                       request.nextUrl.pathname.startsWith('/register');
 
-    if (!token) {
-        console.log("No token found, redirecting to login.");
-        return NextResponse.redirect(new URL("/login", req.url)); // Redirect to login if no token is found
+    if (!token && !isAuthPage) {
+        return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    if (token && isAuthPage) {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
     console.log("Token found, allowing access.");
@@ -17,5 +23,9 @@ export function middleware(req: NextRequest) {
 
 // Define which routes the middleware should run on
 export const config = {
-    matcher: ["/dashboard/:path*"], // Apply middleware to dashboard and subroutes
+    matcher: [
+        '/dashboard/:path*',
+        '/login',
+        '/register'
+    ]
 };

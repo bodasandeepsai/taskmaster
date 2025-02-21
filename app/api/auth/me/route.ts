@@ -3,19 +3,26 @@ import { getTokenFromServer, verifyToken } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const token = getTokenFromServer();
+    const token = await getTokenFromServer();
 
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = verifyToken(token);
-    if (!user) {
+    const decoded = verifyToken(token);
+    if (!decoded) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json({
+      user: {
+        id: decoded.userId,
+        email: decoded.email,
+        username: decoded.username
+      }
+    });
   } catch (error) {
+    console.error("Auth error:", error);
     return NextResponse.json({ error: "Authentication failed" }, { status: 401 });
   }
 } 

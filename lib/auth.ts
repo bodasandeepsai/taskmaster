@@ -9,9 +9,11 @@ interface TokenPayload {
 }
 
 // Get token from cookie in server components
-export function getTokenFromServer() {
-  const cookieStore = cookies();
-  return cookieStore.get("token")?.value;
+export async function getTokenFromServer() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  if (!token) return null;
+  return token;
 }
 
 // Get token from document.cookie in client components
@@ -25,7 +27,8 @@ export function getTokenFromClient() {
 }
 
 // Verify JWT token
-export function verifyToken(token: string): TokenPayload | null {
+export function verifyToken(token: string | null): TokenPayload | null {
+  if (!token) return null;
   try {
     return jwt.verify(token, JWT_SECRET) as TokenPayload;
   } catch (error) {
@@ -35,12 +38,18 @@ export function verifyToken(token: string): TokenPayload | null {
 }
 
 // Get authenticated user from token
-export function getAuthUser() {
-  const token = typeof window === 'undefined' 
-    ? getTokenFromServer() 
-    : getTokenFromClient();
-  
-  return token ? verifyToken(token) : null;
+export async function getAuthUser() {
+  try {
+    const token = typeof window === 'undefined' 
+      ? await getTokenFromServer() 
+      : getTokenFromClient();
+    
+    if (!token) return null;
+    return verifyToken(token);
+  } catch (error) {
+    console.error('Error getting auth user:', error);
+    return null;
+  }
 }
 
 // Generate access and refresh tokens

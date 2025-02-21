@@ -6,14 +6,24 @@ if (!MONGODB_URI) {
   throw new Error("MONGODB_URI is not defined in .env");
 }
 
+let isConnected = false;
+
 export const connectDB = async () => {
   try {
-    if (mongoose.connection.readyState >= 1) {
+    if (isConnected) {
       return;
     }
-    await mongoose.connect(MONGODB_URI, { dbName: "authDB" });
+
+    const db = await mongoose.connect(MONGODB_URI);
+    isConnected = !!db.connections[0].readyState;
+    
+    // Ensure models are registered after connection
+    require("@/models/User");
+    require("@/models/Task");
+    
     console.log("MongoDB Connected");
   } catch (error) {
     console.error("MongoDB connection error:", error);
+    throw error;
   }
 };

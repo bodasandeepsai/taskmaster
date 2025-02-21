@@ -2,15 +2,18 @@ import { Server } from "socket.io";
 import http from "http";
 import mongoose from "mongoose";
 import { connectDB } from "../lib/db";
-import { verifyToken } from "@/lib/auth";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const server = http.createServer();
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? process.env.NEXT_PUBLIC_APP_URL 
-      : "http://localhost:3000",
+    origin: [
+      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      "https://your-vercel-app-url.vercel.app"
+    ],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -21,21 +24,6 @@ connectDB().then(() => {
   console.log("MongoDB connected for WebSocket server");
 }).catch(err => {
   console.error("MongoDB connection error:", err);
-});
-
-io.use((socket, next) => {
-  const token = socket.handshake.auth.token;
-  if (!token) {
-    return next(new Error("Authentication error"));
-  }
-  
-  const decoded = verifyToken(token);
-  if (!decoded) {
-    return next(new Error("Invalid token"));
-  }
-  
-  socket.data.user = decoded;
-  next();
 });
 
 io.on("connection", (socket) => {
@@ -58,7 +46,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.SOCKET_PORT || 4000;
+const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
   console.log(`WebSocket server running on port ${PORT}`);
 });

@@ -8,7 +8,15 @@ export async function POST() {
   );
 
   // Clear the token cookie
-  response.cookies.delete('token');
+  response.cookies.set({
+    name: 'token',
+    value: '',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0
+  });
 
   return response;
 } 

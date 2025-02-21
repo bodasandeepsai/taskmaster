@@ -1,19 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import { cookies } from 'next/headers';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
     // Log all cookies to verify if the token is being read
     console.log("Cookies in Middleware:", request.cookies);
 
     const token = request.cookies.get("token");
-    const isAuthPage = request.nextUrl.pathname.startsWith('/login') || 
-                       request.nextUrl.pathname.startsWith('/register');
+    const { pathname } = request.nextUrl;
 
-    if (!token && !isAuthPage) {
+    // Public paths that don't require authentication
+    const publicPaths = ['/login', '/register'];
+    const isPublicPath = publicPaths.includes(pathname);
+
+    // If there's no token and trying to access protected route
+    if (!token && !isPublicPath) {
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    if (token && isAuthPage) {
+    // If there's a token and trying to access auth pages (login/register)
+    if (token && isPublicPath) {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
@@ -21,11 +26,16 @@ export function middleware(request: NextRequest) {
     return NextResponse.next(); // Proceed with the request if token is found
 }
 
-// Define which routes the middleware should run on
+// Update matcher to include all relevant paths
 export const config = {
     matcher: [
-        '/dashboard/:path*',
-        '/login',
-        '/register'
-    ]
+        /*
+         * Match all request paths except for the ones starting with:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         */
+        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    ],
 };

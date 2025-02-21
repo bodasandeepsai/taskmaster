@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
 import { connectDB } from "@/lib/db";
-import { generateToken } from "@/lib/auth";
+import { generateToken, TokenUser } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
@@ -19,11 +19,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const token = generateToken({
+    const tokenUser: TokenUser = {
       userId: user._id.toString(),
       email: user.email,
       username: user.username
-    });
+    };
+
+    const token = generateToken(tokenUser);
 
     // Create the response
     const response = NextResponse.json(

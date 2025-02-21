@@ -3,7 +3,13 @@ import { cookies } from 'next/headers';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
-interface TokenPayload {
+export interface TokenPayload {
+  userId: string;
+  email: string;
+  username: string;
+}
+
+export interface TokenUser {
   userId: string;
   email: string;
   username: string;
@@ -11,9 +17,8 @@ interface TokenPayload {
 
 // Get token from cookie in server components
 export async function getTokenFromServer() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  if (!token) return null;
+  const cookieStore = cookies();
+  const token = cookieStore.get('token')?.value;
   return token;
 }
 
@@ -28,8 +33,7 @@ export function getTokenFromClient() {
 }
 
 // Verify JWT token
-export function verifyToken(token: string | null): TokenPayload | null {
-  if (!token) return null;
+export function verifyToken(token: string): TokenPayload | null {
   try {
     return jwt.verify(token, JWT_SECRET) as TokenPayload;
   } catch (error) {
@@ -91,11 +95,15 @@ export async function validateToken(token: string | undefined): Promise<TokenPay
   }
 }
 
-export const generateToken = (user: { userId: string, email: string }) => {
+export const generateToken = (user: TokenUser) => {
   return jwt.sign(
-    { userId: user.userId, email: user.email }, 
+    { 
+      userId: user.userId, 
+      email: user.email, 
+      username: user.username 
+    }, 
     JWT_SECRET, 
-    { expiresIn: "1h" }
+    { expiresIn: "24h" }
   );
 };
 

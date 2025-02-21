@@ -8,6 +8,22 @@ interface TokenPayload {
   email?: string;
 }
 
+// Get token from cookie in server components
+export function getTokenFromServer() {
+  const cookieStore = cookies();
+  return cookieStore.get("token")?.value;
+}
+
+// Get token from document.cookie in client components
+export function getTokenFromClient() {
+  if (typeof window === 'undefined') return null;
+  const token = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('token='))
+    ?.split('=')[1];
+  return token;
+}
+
 // Verify JWT token
 export function verifyToken(token: string): TokenPayload | null {
   try {
@@ -18,10 +34,12 @@ export function verifyToken(token: string): TokenPayload | null {
   }
 }
 
-// Get authenticated user from cookies
+// Get authenticated user from token
 export function getAuthUser() {
-  const cookieStore = cookies();
-  const token = cookieStore.get('token')?.value;
+  const token = typeof window === 'undefined' 
+    ? getTokenFromServer() 
+    : getTokenFromClient();
+  
   return token ? verifyToken(token) : null;
 }
 
@@ -64,7 +82,6 @@ export async function validateToken(token: string | undefined): Promise<TokenPay
 }
 
 export const generateToken = (user: { userId: string, email: string }) => {
-  // Include more data in the payload if needed
   return jwt.sign(
     { userId: user.userId, email: user.email }, 
     JWT_SECRET, 

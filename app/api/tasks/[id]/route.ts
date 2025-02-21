@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { getTokenFromServer, verifyToken } from "@/lib/auth";
 
 type Props = {
   params: {
@@ -17,9 +16,8 @@ export async function PATCH(
   try {
     await connectDB();
 
-    // Verify authentication
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    // Verify authentication using the new function
+    const token = getTokenFromServer();
     
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

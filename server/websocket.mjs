@@ -8,7 +8,7 @@ dotenv.config();
 const server = http.createServer();
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["http://localhost:3000", "https://your-vercel-url.vercel.app"],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -26,10 +26,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("createTask", (task) => {
+    console.log("Task created:", task);
     io.emit("taskCreated", task);
   });
 
   socket.on("updateTask", (task) => {
+    console.log("Task updated:", task);
     io.emit("taskUpdated", task);
   });
 

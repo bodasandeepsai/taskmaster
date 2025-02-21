@@ -77,8 +77,14 @@ export default function Dashboard() {
         setSocketConnected(true);
       });
 
-      socket.on("taskCreated", (newTask: Task) => {
-        setTasks(prevTasks => [...prevTasks, newTask]);
+      socket.on("taskCreated", (task: Task) => {
+        setTasks(prevTasks => {
+          // Check if task already exists to prevent duplicates
+          if (prevTasks.some(t => t._id === task._id)) {
+            return prevTasks;
+          }
+          return [...prevTasks, task];
+        });
       });
 
       socket.on("taskUpdated", (updatedTask: Task) => {
@@ -118,46 +124,36 @@ export default function Dashboard() {
   };
 
   // Handle task creation
-  async function handleCreateTask() {
+  const handleCreateTask = async () => {
     try {
-      if (!newTask.title || !newTask.description || !newTask.assignee) {
-        alert("Please fill in all fields");
-        return;
-      }
-
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify(newTask),
+        credentials: "include",
       });
 
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to create task");
+        throw new Error("Failed to create task");
       }
 
       const createdTask = await res.json();
       
-      // Update local state
+      // Update tasks state immediately
       setTasks(prevTasks => [...prevTasks, createdTask]);
       
       // Emit socket event
-      if (socketConnected) {
-        socket.emit("createTask", createdTask);
-      }
+      socket.emit("createTask", createdTask);
       
-      // Clear form
+      // Reset form
       setNewTask({ title: "", description: "", assignee: "" });
       
-      alert("Task created successfully!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating task:", error);
-      alert(error.message || "Failed to create task");
     }
-  }
+  };
 
   // Handle task update
   async function handleUpdateTask(taskId: string, status: string) {

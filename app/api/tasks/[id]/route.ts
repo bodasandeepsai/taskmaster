@@ -4,15 +4,9 @@ import Task from "@/models/Task";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
 export async function PATCH(
   request: NextRequest,
-  { params }: RouteParams
+  context: { params: { id: string } }
 ) {
   try {
     await connectDB();
@@ -40,7 +34,7 @@ export async function PATCH(
 
     // Update task
     const updatedTask = await Task.findByIdAndUpdate(
-      params.id,
+      context.params.id,
       { status },
       { 
         new: true,

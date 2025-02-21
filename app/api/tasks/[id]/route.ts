@@ -3,15 +3,9 @@ import { connectDB } from "@/lib/db";
 import Task from "@/models/Task";
 import { getTokenFromServer, verifyToken } from "@/lib/auth";
 
-type Props = {
-  params: {
-    id: string;
-  };
-};
-
 export async function PATCH(
   req: NextRequest,
-  { params }: Props
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectDB();
@@ -59,7 +53,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: Props
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectDB();

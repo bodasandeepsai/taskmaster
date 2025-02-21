@@ -8,6 +8,8 @@ import { io } from "socket.io-client";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import TaskCard from "@/components/TaskCard";
 import AiChatBot from "@/components/AiChatBot";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 interface User {
   _id: string;
@@ -22,7 +24,14 @@ const socket = io("http://localhost:4000", {
   autoConnect: false // Don't connect automatically
 });
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+
+  if (!token) {
+    redirect('/login');
+  }
+
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const [tasks, setTasks] = useState<Task[]>([]);

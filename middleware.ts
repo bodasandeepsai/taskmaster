@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     // Log all cookies to verify if the token is being read
     console.log("Cookies in Middleware:", request.cookies);
 
-    const token = request.cookies.get("token");
+    const token = await request.cookies.get("token");
     const { pathname } = request.nextUrl;
 
     // Public paths that don't require authentication

@@ -17,7 +17,7 @@ export interface TokenUser {
 
 // Get token from cookie in server components
 export async function getTokenFromServer() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
   return token;
 }
